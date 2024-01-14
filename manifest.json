@@ -1,0 +1,58 @@
+{
+  "manifest_version": 3,
+  "name": "SelfProxy",
+  "version": "1.0",
+  "description": "Simple proxy extension",
+  "permissions": [
+    "proxy",
+    "tabs",
+    "alarms",
+    "contextMenus",
+    "storage",
+    "webRequest",
+    "webRequestAuthProvider",
+    "notifications",
+    "downloads",
+    "tabCapture",
+    "activeTab",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "action": {
+    "default_popup": "./js/popup.html",
+    "default_icon": {
+      "16": "img/icons/simpleProxy-16.png",
+      "24": "img/icons/simpleProxy-24.png",
+      "32": "img/icons/simpleProxy-32.png",
+      "48": "img/icons/simpleProxy-48.png",
+      "64": "img/icons/simpleProxy-64.png",
+      "128": "img/icons/simpleProxy-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "icons": {
+    "16": "img/icons/simpleProxy-16.png",
+    "24": "img/icons/simpleProxy-24.png",
+    "32": "img/icons/simpleProxy-32.png",
+    "48": "img/icons/simpleProxy-48.png",
+    "64": "img/icons/simpleProxy-64.png",
+    "128": "img/icons/simpleProxy-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "./settings/settings.html"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+
+  "version_name": "Версия 1.0"
+}
