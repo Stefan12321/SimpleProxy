@@ -47,7 +47,7 @@ module.exports = {
         extensions: [".tsx", ".ts", ".js"],
     },
     output: {
-        path: path.join(__dirname, "../../extension/selfproxyReact/js"),
+        path: path.join(__dirname, "./build/selfproxyReact/js"),
         filename: "[name].js",
     },
 };
