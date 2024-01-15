@@ -1,8 +1,13 @@
-FROM ubuntu:22.04
-RUN apt-get update \
-  && apt-get install -y git \
-  && apt-get clean
-FROM node:latest
-RUN git clone https://github.com/Stefan12321/SimpleProxy
-WORKDIR ./SimpleProxy
-RUN npm init && npm install
+FROM node:20.9.0 AS base
+WORKDIR /app
+
+FROM base AS build-app
+COPY package*.json ./
+RUN npm install && npm install -g crx-cli
+COPY . .
+RUN npm run build
+WORKDIR /app/build/selfproxyReact
+
+FROM scratch AS app
+COPY --from=build-app /app/build/selfproxyReact /selfproxyReact/
+ENTRYPOINT [ "/bin/app" ]

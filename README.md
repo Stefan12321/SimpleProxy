@@ -1,46 +1,65 @@
-# Getting Started with Create React App
+# SimpleProxy Chrome extension
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Description
 
-## Available Scripts
+SipmpleProxy is a small Chrome extension for using proxy servers. 
+The main task of this extension is to monitor the change of the IP on the proxy server and block the connection if the change has occurred.
 
-In the project directory, you can run:
 
-### `npm start`
+## Features
+- IP monitoring
+- Multi profiling
+- Autoswitch mode
+- One line proxy settings
+## Future Features
+- [x] http proxy support
+- [ ] https proxy support
+- [ ] socs5 proxy support
+- [ ] Import / export settings via json files
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Build
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+In the project directory, you can run to build the app inside docker and export binaries to the build folder:
+```
+docker build --output=build --target=app .
+```
+Or you can build manually:
 
-### `npm test`
+```
+npm install
+npm run build
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Install
 
-### `npm run build`
+To install the build Chrome extension you need to follow the next steps:
+1. Build an app
+2. Open Chrome browser and go to [chrome://extensions/](chrome://extensions/)
+3. Enable Developer mode ( look for a checkbox labeled `Developer mode` and ensure it's checked)
+4. Click on `Load unpacked` button and select selfproxyReact folder from the build
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Usage
+The extension has three modes:
+- Direct mode (all sites work without proxy)
+- Proxy mode (all sites work with proxy)
+- Autoswitch (only sites from auto switch settings work with proxy)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+#### IP monitoring
+To enable IP monitoring, you need to ensure that the `IP control` checkbox in the popup is checked. When the IP changes,
+the extension will lock the connection and show a Windows notification with information about the new IP. The SimpleProxy 
+icon will change color to red, and a lock icon will appear in the selected mode button. To unlock the proxy, you need to 
+click again on the mode button.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+#### Multi profiling
+The extension supports multi-profiling, the name of the current profile is shown in the popup `Proxy name:` row.
+You can add a new profile in the `Global proxy` settings block on the app settings page 
 
-### `npm run eject`
+#### Autoswitch
+To set sites for the auto-switch mode, you need to go to the settings page and, inside the `Auto-switch settings` block, 
+add or remove certain sites.
+> [!WARNING]
+> Don't remove sites `*api.seeip.org, *api.ipify.org, *api.my-ip.io, *jsonip.com` it uses for IP monitoring
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+#### One line proxy settings
+On the settings page, in the `Proxy settings` block, you can select the format and paste a one-line proxy setting from your proxy distributor.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
