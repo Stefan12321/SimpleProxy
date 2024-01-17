@@ -5,6 +5,11 @@
 SipmpleProxy is a small Chrome extension for using proxy servers. 
 The main task of this extension is to monitor the change of the IP on the proxy server and block the connection if the change has occurred.
 
+<div align="center">
+
+![photomaker_demo_fast](assets/asset1)
+
+</div>
 
 ## Features
 - IP monitoring
