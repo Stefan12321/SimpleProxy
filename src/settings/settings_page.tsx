@@ -1,8 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import React, {ReactNode, useEffect, useState} from "react";
+import React, {ReactNode, useEffect, useRef, useState} from "react";
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
-// import {chrome} from 'jest-chrome'
 import Proxy from "../proxy";
 
 const patterns: { [key: string]: RegExp } = {
@@ -12,7 +11,8 @@ const patterns: { [key: string]: RegExp } = {
     "{username}:{password}@{hostname}:{port}": /^([a-zA-Z0-9_-]+):([a-zA-Z0-9_-]+)@([a-zA-Z0-9.-]+):(\d+)$/,
 }
 
-function SettingsContainer({blockName, children}: { blockName: string, children?: ReactNode }) {
+
+function SettingsContainer({blockName, children}: Readonly<{ blockName: string, children?: ReactNode }>) {
     return (<div className="p-5 mb-4 bg-body-tertiary rounded-3 selfproxy-container">
         <div className="container-fluid py-5">
             <h2>{blockName}</h2>
@@ -21,11 +21,11 @@ function SettingsContainer({blockName, children}: { blockName: string, children?
     </div>);
 }
 
-function Select({itemsArr, selectId, onChange}: {
+function Select({itemsArr, selectId, onChange}: Readonly<{
     itemsArr: string[],
     selectId: string,
-    onChange?: ((e: React.ChangeEvent<HTMLSelectElement>) => void) | undefined,
-}) {
+    onChange?: ((e: React.ChangeEvent<HTMLSelectElement>) => void),
+}>) {
     // Handle default selected element
 
     // Generate option components
@@ -48,20 +48,19 @@ function Select({itemsArr, selectId, onChange}: {
 }
 
 
-function SelectProfile({proxies, setProxy}: {
+function SelectProfile({proxies, setProxy}: Readonly<{
     proxies: Proxy[],
     setProxy: React.Dispatch<React.SetStateAction<Proxy | undefined>>
-}) {
-    // const namesArray: string[] = proxies.map(obj => obj.name);
+}>) {
     const [namesArray, setNamesArray] = useState<string[]>([]);
     const [show, setShow] = useState(false);
     const [newAccountName, setNewAccountName] = useState<string>('');
     const [selectedProfile, setSelectedProfile] = useState<string>('');
 
     useEffect(() => {
-        chrome.storage.local.get(["selectedProxy", "proxy"], (result) => {
-            setSelectedProfile(result["selectedProxy"] || '');
-            setNamesArray(result["proxy"].map((obj: { name: any; }) => obj.name));
+        chrome.storage.local.get(["simpleProxy"], (result) => {
+            setSelectedProfile(result.simpleProxy["selectedProxy"] || '');
+            setNamesArray(result.simpleProxy["proxy"].map((obj: { name: any; }) => obj.name));
         });
     }, []);
 
@@ -74,18 +73,22 @@ function SelectProfile({proxies, setProxy}: {
     }
 
     const handleSave = () => {
-        chrome.storage.local.get(["proxy"], (result) => {
-            const existingProxies = result["proxy"] || [];
+        chrome.storage.local.get(["simpleProxy"], (result) => {
+            const existingProxies = result.simpleProxy["proxy"] || [];
             const names = existingProxies.map((obj: Proxy) => obj.name);
 
             if (!names.includes(newAccountName)) {
                 const newProxy = new Proxy({name: newAccountName});
                 existingProxies.push(newProxy);
+                console.log("existingProxies");
+                console.log(existingProxies);
                 const updatedNamesArray = [...namesArray, newAccountName];
                 setNamesArray(updatedNamesArray);
                 setSelectedProfile(newProxy.name);
                 setProxy(newProxy);
-                chrome.storage.local.set({"proxy": existingProxies, "selectedProxy": newProxy.name}, () => {
+                result.simpleProxy.proxy = existingProxies;
+                result.simpleProxy.selectedProxy = newProxy.name;
+                chrome.storage.local.set(result, () => {
                     setShow(false);
 
                 });
@@ -97,22 +100,25 @@ function SelectProfile({proxies, setProxy}: {
         const newProfileName = e.target.value;
         setSelectedProfile(newProfileName);
 
-        chrome.storage.local.get(["proxy"], (result) => {
-            const selectedProxy = result.proxy.find((obj: Proxy) => obj.name === newProfileName);
+        chrome.storage.local.get(["simpleProxy"], (result) => {
+            const selectedProxy = result.simpleProxy.proxy.find((obj: Proxy) => obj.name === newProfileName);
             setProxy(selectedProxy);
-            chrome.storage.local.set({"selectedProxy": newProfileName});
+            result.simpleProxy.selectedProxy = newProfileName
+            chrome.storage.local.set(result);
         });
     }
 
     const handleDeleteProfile = () => {
-        chrome.storage.local.get(["proxy"], (result) => {
-            const updatedProxies = (result["proxy"] || []).filter((obj: Proxy) => obj.name !== selectedProfile);
+        chrome.storage.local.get(["simpleProxy"], (result) => {
+            const updatedProxies = (result.simpleProxy["proxy"] || []).filter((obj: Proxy) => obj.name !== selectedProfile);
             const updatedNamesArray = namesArray.filter((obj: string) => obj !== selectedProfile);
             if (updatedNamesArray.length > 0) {
                 setNamesArray(updatedNamesArray);
-                chrome.storage.local.set({"proxy": updatedProxies, "selectedProxy": updatedNamesArray[0]}, () => {
+                result.simpleProxy.proxy = updatedProxies;
+                result.simpleProxy.selectedProxy = updatedNamesArray[0];
+                chrome.storage.local.set(result, () => {
                     setShow(false);
-                    const selectedProxy = result.proxy.find((obj: Proxy) => obj.name === updatedNamesArray[0]);
+                    const selectedProxy = result.simpleProxy.proxy.find((obj: Proxy) => obj.name === updatedNamesArray[0]);
                     setProxy(selectedProxy);
                 });
             }
@@ -168,7 +174,7 @@ function SelectProfile({proxies, setProxy}: {
 }
 
 
-function ProxySettingsTable({proxy, setProxy}: { proxy: Proxy, setProxy: React.Dispatch<any> }) {
+function ProxySettingsTable({proxy, setProxy}: Readonly<{ proxy: Proxy, setProxy: React.Dispatch<any> }>) {
     const [show, setShow] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const handleClose = () => setShow(false);
@@ -268,9 +274,9 @@ function ProxySettingsTable({proxy, setProxy}: { proxy: Proxy, setProxy: React.D
 
 function AutoSwitchTable({
                              proxy
-                         }: {
+                         }: Readonly<{
     proxy: Proxy
-}) {
+}>) {
     const [urls, setUrls] = useState<string[]>([]);
     useEffect(() => {
         if (proxy) {
@@ -301,9 +307,10 @@ function AutoSwitchTable({
 
     const handleSave = async () => {
         try {
-            const result = await chrome.storage.local.get(["proxy"]);
-            const updatedProxy = {...result.proxy[0], urls};
-            await chrome.storage.local.set({"proxy": [updatedProxy]});
+            const result = await chrome.storage.local.get(["simpleProxy"]);
+            const updatedProxy = {...result.simpleProxy.proxy[0], urls};
+            result.simpleProxy.proxy = [updatedProxy];
+            await chrome.storage.local.set(result);
         } catch (error) {
             console.error(error);
         }
@@ -370,13 +377,67 @@ function AutoSwitchTable({
 }
 
 function ImportExportSettings() {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleUploadButtonClick = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            if (file.type === 'application/json') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    if (e.target?.result) {
+                        const jsonData = JSON.parse(e.target.result as string);
+                        if (jsonData.hasOwnProperty("simpleProxy")) {
+                            console.log(jsonData);
+                            chrome.storage.local.set({"simpleProxy": jsonData.simpleProxy});
+                        }
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                alert('Invalid file type. Please select a JSON file.');
+            }
+        }
+    };
+
+    function download(content: any, fileName: string, contentType: string) {
+        const a = document.createElement("a");
+        const file = new Blob([content], {type: contentType});
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        a.click();
+    }
+
+
+    const handleDownload = () => {
+        chrome.storage.local.get(["simpleProxy"]).then((resp) => {
+            download(JSON.stringify(resp), "settings.json", "text/plain");
+        })
+    }
     return (
         <div>
-            <button id="downloadSettings" type="button" className="btn btn-dark import-export-button">Download
+            <button id="downloadSettings" type="button" className="btn btn-dark import-export-button"
+                    onClick={handleDownload}>Download
                 settings
             </button>
-            <button id="uploadSettings" type="button" className="btn btn-dark import-export-button">Upload settings
+            <button id="uploadSettings"
+                    type="button"
+                    className="btn btn-dark import-export-button"
+                    onClick={handleUploadButtonClick}>Upload settings
             </button>
+            <input
+                id="uploadInput"
+                type="file"
+                style={{display: 'none'}}
+                ref={fileInputRef}
+                onChange={handleFileChange}
+            />
         </div>
 
     );
@@ -401,20 +462,22 @@ function SettingsPage() {
 
     useEffect(() => {
         // Fetch data from chrome.storage.local
-        chrome.storage.local.get(['proxy', 'selectedProxy'], (result) => {
+        chrome.storage.local.get(["simpleProxy"], (result) => {
             if (chrome.runtime.lastError) {
                 // Handle error if any
                 console.error(chrome.runtime.lastError);
             } else {
                 // Set the retrieved proxy value in state
                 let proxies: Proxy[] = []
-                for (const element of result.proxy) {
+                for (const element of result.simpleProxy.proxy) {
                     proxies.push(
                         new Proxy(element)
                     );
                 }
                 setProxies(proxies);
-                const selectedProxy = proxies.find((obj: { name: string; }) => obj.name === result["selectedProxy"]);
+                const selectedProxy = proxies.find((obj: {
+                    name: string;
+                }) => obj.name === result.simpleProxy["selectedProxy"]);
                 setProxy(selectedProxy);
 
             }
@@ -447,16 +510,17 @@ function SettingsPage() {
             console.log("oneLineInput is empty");
         }
         if (proxy !== undefined) {
-            chrome.storage.local.get(["proxy"], (result) => {
+            chrome.storage.local.get(["simpleProxy"], (result) => {
 
-                let proxies = result["proxy"];
+                let proxies = result.simpleProxy["proxy"];
                 const updatedArray = proxies.map((obj: { name: string; }) => {
                     if (obj.name === proxy.name) {
                         return proxy;
                     }
                     return obj;
                 });
-                chrome.storage.local.set({"proxy": updatedArray});
+                result.simpleProxy.proxy = updatedArray;
+                chrome.storage.local.set(result);
             })
         }
 
@@ -491,7 +555,7 @@ function SettingsPage() {
                     <ImportExportSettings/>
                 </SettingsContainer>
                 <footer className="pt-3 mt-4 text-body-secondary border-top">
-                    © 2023
+                    © 2024
                 </footer>
             </div>
 

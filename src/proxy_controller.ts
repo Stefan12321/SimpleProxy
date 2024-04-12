@@ -142,16 +142,16 @@ return "DIRECT";
 
 function clearProxy() {
     chrome.proxy.settings.clear({scope: 'regular'}, function () {
-        console.log('Прокси-сервер удален');
+        console.log('Removing proxy...');
     });
 }
 
 function updateProxyInStorage(proxy: Proxy) {
-    chrome.storage.local.get((result) => {
-
-        let proxies = result['proxy'];
+    chrome.storage.local.get(["simpleProxy"],(result) => {
+        let proxies = result.simpleProxy['proxy'];
         const proxyIndex = proxies.findIndex((obj: { name: string; }) => obj.name === proxy.name);
         proxies[proxyIndex] = proxy;
-        chrome.storage.local.set({"proxy": proxies});
+        result.simpleProxy.proxy = proxies;
+        chrome.storage.local.set(result);
     })
 }

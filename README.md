@@ -20,7 +20,7 @@ The main task of this extension is to monitor the change of the IP on the proxy 
 - [x] http proxy support
 - [ ] https proxy support
 - [ ] socs5 proxy support
-- [ ] Import / export settings via json files
+- [x] Import / export settings via json files
 
 ## Build
 

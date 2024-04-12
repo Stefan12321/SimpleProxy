@@ -10,7 +10,7 @@ function findObjectByName(array, targetName) {
 }
 
 export async function lockIP(mode) {
-    var config = {
+    let config = {
         mode: "fixed_servers",
         rules: {
             singleProxy: {
@@ -25,7 +25,11 @@ export async function lockIP(mode) {
         function () {
         }
     );
-    await chrome.storage.local.set({'locker': true});
+    await chrome.storage.local.get("simpleProxy", (result) => {
+        result.simpleProxy.locker = true;
+        chrome.storage.local.set(result);
+    });
+
     if (typeof document !== 'undefined') {
         let button = document.querySelector(buttonsID[mode]);
         button.children[0].classList = "locked"
@@ -63,14 +67,14 @@ async function checkIpCycle(urls) {
 async function checkIp(urls, currentIndex) {
 
     try {
-        const result = await chrome.storage.local.get(['ipControl', 'ip', 'ipCheckTimestamp', 'proxy', 'selectedProxy']);
+        const result = await chrome.storage.local.get(['simpleProxy']);
         const response = await fetchWithTimeout(urls[currentIndex], {method: 'GET'}, 5000);
-        let selectedProxy = result.selectedProxy;
-        let proxy = findObjectByName(result.proxy, selectedProxy);
+        let selectedProxy = result.simpleProxy.selectedProxy;
+        let proxy = findObjectByName(result.simpleProxy.proxy, selectedProxy);
         if (response.ok) {
             const data = await response.json();
-            const oldIp = result.ip;
-            const ipControl = result.ipControl;
+            const oldIp = result.simpleProxy.ip;
+            const ipControl = result.simpleProxy.ipControl;
             const ipAddress = data.ip;
             const mode = proxy.mode;
 
@@ -85,7 +89,9 @@ async function checkIp(urls, currentIndex) {
                 });
 
             }
-            await chrome.storage.local.set({'ip': ipAddress, 'ipCheckTimestamp': Date.now()});
+            result.simpleProxy.ip = ipAddress;
+            result.simpleProxy.ipCheckTimestamp = Date.now();
+            await chrome.storage.local.set(result);
         } else {
             currentIndex = (currentIndex + 1) % urls.length;
         }
@@ -146,16 +152,15 @@ function main() {
 
     keepAlive();
     checkIpCycle(urlsCheckIp);
-    chrome.storage.local.get((result) => {
-
-        let proxies = result["proxy"];
-        let locker = result["locker"];
-        let selectedProxy = result.selectedProxy;
-        let proxy = findObjectByName(result.proxy, selectedProxy);
+    chrome.storage.local.get(["simpleProxy"], (result) => {
+        let proxies = result.simpleProxy["proxy"];
+        let locker = result.simpleProxy["locker"];
+        let selectedProxy = result.simpleProxy.selectedProxy;
+        let proxy = findObjectByName(result.simpleProxy.proxy, selectedProxy);
         if (locker) {
             lockIP(proxy.mode)
         } else {
-            const foundProxy = proxies.find(obj => obj.name === result["selectedProxy"])
+            const foundProxy = proxies.find(obj => obj.name === result.simpleProxy["selectedProxy"])
             const login = foundProxy.login;
             const password = foundProxy.password;
             const pendingRequests = [];

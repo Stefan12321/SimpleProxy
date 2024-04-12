@@ -28,9 +28,9 @@ function IpChecker() {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            chrome.storage.local.get(["ip", "ipCheckTimestamp"], (result) => {
-                const ip = result["ip"];
-                const ipTimestamp = parseInt(result["ipCheckTimestamp"], 10);
+            chrome.storage.local.get(["simpleProxy"], (result) => {
+                const ip = result.simpleProxy.ip;
+                const ipTimestamp = parseInt(result.simpleProxy.ipCheckTimestamp, 10);
                 const currentTimestamp: number = Date.now();
                 const timeDifferent = (currentTimestamp - ipTimestamp) / 1000;
                 setIpTimestamp(timeDifferent);
@@ -42,7 +42,7 @@ function IpChecker() {
     }, []);
 
     const handleCopyButton = () => {
-        if (ip !== undefined){
+        if (ip !== undefined) {
             navigator.clipboard.writeText(ip);
         }
 
@@ -65,7 +65,11 @@ function IpControlSwitch({ipControl, setIpControl}: Readonly<{
 }>) {
     const handleIpControlTangle = () => {
         setIpControl(!ipControl);
-        chrome.storage.local.set({"ipControl": !ipControl});
+        chrome.storage.local.get(["simpleProxy"], (result) => {
+            result.simpleProxy.ipControl = !result.simpleProxy.ipControl;
+            chrome.storage.local.set(result);
+        })
+
     }
 
     return (
@@ -100,7 +104,7 @@ function App() {
 
     useEffect(() => {
         // Fetch data from chrome.storage.local
-        chrome.storage.local.get((result) => {
+        chrome.storage.local.get(["simpleProxy"], (result) => {
             if (chrome.runtime.lastError) {
                 // Handle error if any
                 console.error(chrome.runtime.lastError);
@@ -109,9 +113,14 @@ function App() {
                 let proxies: Proxy[] = []
                 let selectedProxy: Proxy;
                 let locker: boolean = false;
+
                 const changeObject: { [key: string]: string | boolean | Proxy[] } = {};
-                if (result.hasOwnProperty('proxy')) {
-                    for (const element of result.proxy) {
+                if (!result.hasOwnProperty("simpleProxy")){
+                    result.simpleProxy = {};
+                }
+
+                if (result.simpleProxy.hasOwnProperty('proxy')) {
+                    for (const element of result.simpleProxy.proxy) {
                         proxies.push(
                             new Proxy(element)
                         );
@@ -126,8 +135,8 @@ function App() {
                 setProxies(proxies);
 
 
-                if (result.hasOwnProperty('selectedProxy')) {
-                    const foundProxy = proxies.find(obj => obj.name === result["selectedProxy"])
+                if (result.simpleProxy.hasOwnProperty('selectedProxy')) {
+                    const foundProxy = proxies.find(obj => obj.name === result.simpleProxy["selectedProxy"])
                     if (foundProxy !== undefined) {
                         selectedProxy = foundProxy;
 
@@ -141,13 +150,13 @@ function App() {
                     changeObject['selectedProxy'] = selectedProxy.name;
                 }
 
-                if (result.hasOwnProperty('locker')) {
-                    locker = result['locker'];
+                if (result.simpleProxy.hasOwnProperty('locker')) {
+                    locker = result.simpleProxy['locker'];
                 } else {
                     changeObject['locker'] = false;
                 }
-                if (result.hasOwnProperty('ipControl')) {
-                    if (result["ipControl"]) {
+                if (result.simpleProxy.hasOwnProperty('ipControl')) {
+                    if (result.simpleProxy["ipControl"]) {
                         setIpControl(true);
                     } else {
                         setIpControl(false);
@@ -156,23 +165,24 @@ function App() {
                     setIpControl(false);
                     changeObject['ipControl'] = false;
                 }
-
+                console.log("selected proxy");
+                console.log(selectedProxy);
                 setProxy(selectedProxy);
-                if (selectedProxy.mode === "direct" && !locker){
+                if (selectedProxy.mode === "direct" && !locker) {
                     proxyModeDirect(selectedProxy);
                     console.log("DIRECT");
-                } else if (selectedProxy.mode === "proxy" && !locker){
+                } else if (selectedProxy.mode === "proxy" && !locker) {
                     proxyModeProxy(selectedProxy);
                     console.log("proxy");
-                }else if (selectedProxy.mode === "autoswitch" && !locker){
+                } else if (selectedProxy.mode === "autoswitch" && !locker) {
                     proxyModeAutoswitch(selectedProxy);
                     console.log(selectedProxy);
                     console.log("autoswitch");
                 } else {
                     console.error("There is wrong proxy mode selected!")
                 }
-
-                chrome.storage.local.set(changeObject);
+                result.simpleProxy = changeObject
+                chrome.storage.local.set(result);
             }
         });
     }, []);
@@ -190,9 +200,9 @@ function App() {
     // TODO  I think it would work with chrome.tabs.sendMessage and chrome.runtime.onMessage.addListener
     useEffect(() => {
         const interval = setInterval(() => {
-            chrome.storage.local.get(["locker"], (result) => {
-                if (result.hasOwnProperty('locker')) {
-                    const locker = result['locker'];
+            chrome.storage.local.get(["simpleProxy"], (result) => {
+                if (result.simpleProxy.hasOwnProperty('locker')) {
+                    const locker = result.simpleProxy['locker'];
                     setLock(locker);
 
                 }
@@ -206,8 +216,12 @@ function App() {
         const updatedButtons = buttons.map((button, i) => {
             if (lock) {
                 setLock(false);
-                chrome.storage.local.set({"locker": false});
-                chrome.action.setIcon({ path: '/img/icons/simpleProxy-128.png' })
+                chrome.storage.local.get(["simpleProxy"], (result) => {
+                    result.simpleProxy.locker = false;
+                    chrome.storage.local.set(result);
+                })
+
+                chrome.action.setIcon({path: '/img/icons/simpleProxy-128.png'})
             }
             if (i === index) {
                 if (button.modeName === "Direct" && proxy !== undefined) {
