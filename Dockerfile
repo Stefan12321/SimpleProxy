@@ -8,5 +8,5 @@ COPY . .
 RUN npm run build
 
 FROM scratch AS app
-COPY --from=build-app /app/build/selfproxyReact /selfproxyReact/
+COPY --from=build-app /app/build/selfproxy /selfproxy/
 ENTRYPOINT [ "/bin/app" ]

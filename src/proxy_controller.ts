@@ -147,7 +147,7 @@ function clearProxy() {
 }
 
 function updateProxyInStorage(proxy: Proxy) {
-    chrome.storage.local.get(["simpleProxy"],(result) => {
+    chrome.storage.local.get(["simpleProxy"], (result) => {
         let proxies = result.simpleProxy['proxy'];
         const proxyIndex = proxies.findIndex((obj: { name: string; }) => obj.name === proxy.name);
         proxies[proxyIndex] = proxy;

@@ -1,5 +1,8 @@
-const defaultAutoSwitchPattern = ["*api.seeip.org", "*api.ipify.org", "*api.my-ip.io", "*jsonip.com",
-    "*whoer.net"]
+const defaultAutoSwitchPattern = ["*api.seeip.org",
+                                            "*api.ipify.org",
+                                            "*api.my-ip.io",
+                                            "*jsonip.com",
+                                            "*whoer.net"]
 
 class Proxy {
     name: string;

@@ -21,16 +21,17 @@ function SettingsContainer({blockName, children}: Readonly<{ blockName: string, 
     </div>);
 }
 
-function Select({itemsArr, selectId, onChange}: Readonly<{
+function Select({itemsArr, selectId, selectedItem, onChange}: Readonly<{
     itemsArr: string[],
     selectId: string,
+    selectedItem?: string,
     onChange?: ((e: React.ChangeEvent<HTMLSelectElement>) => void),
 }>) {
     // Handle default selected element
 
     // Generate option components
     const itemComponents = itemsArr.map((element) => (
-        <option value={element} key={element}>
+        <option value={element} key={element} selected={element === selectedItem}>
             {element}
         </option>
     ));
@@ -203,6 +204,12 @@ function ProxySettingsTable({proxy, setProxy}: Readonly<{ proxy: Proxy, setProxy
         setProxy({...proxy, login: newLogin});
     };
 
+    const handleProtocolChange = (e: React.ChangeEvent<HTMLSelectElement>) =>{
+        console.log(proxy);
+        const newProtocol = e.target.value;
+        setProxy({...proxy, scheme: newProtocol});
+    }
+
     return (
         <div>
             <table className="table table-bordered" aria-describedby="proxySettings" id="proxyTable">
@@ -219,7 +226,8 @@ function ProxySettingsTable({proxy, setProxy}: Readonly<{ proxy: Proxy, setProxy
                 <tr>
                     <th scope="row">1</th>
                     <td>
-                        <Select itemsArr={["http", "https", "socks5"]} selectId={"protocols"}/>
+                        <Select itemsArr={["http", "https", "socks5"]}
+                                selectId={"protocols"} selectedItem={proxy.scheme} onChange={handleProtocolChange}/>
                     </td>
                     <td>
                         <input className="form-control" type="text" id="serverInput" placeholder="Server"
@@ -338,8 +346,6 @@ function AutoSwitchTable({
             </td>
         </tr>
     ));
-
-    console.log(elements);
 
     return (
         <div>
@@ -510,6 +516,8 @@ function SettingsPage() {
             console.log("oneLineInput is empty");
         }
         if (proxy !== undefined) {
+            console.log("Updating proxy");
+            console.log(proxy);
             chrome.storage.local.get(["simpleProxy"], (result) => {
 
                 let proxies = result.simpleProxy["proxy"];

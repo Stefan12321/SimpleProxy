@@ -96,25 +96,7 @@ describe('SettingsPage', () => {
         fireEvent.click(button);
         expect(document.body.classList.contains('modal-open')).toBe(true);
     });
-    // test('Apply', async () => {
-    //
-    //
-    //     render(<SettingsPage/>);
-    //     await waitFor(() => {
-    //         expect(screen.getByText('Global proxy settings')).toBeInTheDocument();
-    //     });
-    //
-    //     const inputServer = screen.getByPlaceholderText('Server') as HTMLInputElement;
-    //     const inputPort = screen.getByPlaceholderText('Port') as HTMLInputElement;
-    //     fireEvent.change(inputServer, {target: {value: 'Hello'}});
-    //     fireEvent.change(inputPort, {target: {value: 'World'}});
-    //
-    //     const button = screen.getByText('Apply');
-    //     fireEvent.click(button);
-    //     expect()
-    //
-    //
-    // });
+
 });
 
 
